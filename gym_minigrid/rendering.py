@@ -41,6 +41,22 @@ def rotate_fn(fin, cx, cy, theta):
 
     return fout
 
+def scale_fn(fin, cx, cy, scale):
+    print(fin, cx, cy, scale)
+    def fout(x, y):
+        x = float(x)
+        y = float(y)
+        x -= cx
+        y -= cy
+        x /= scale
+        y /= scale
+        x += cx
+        y += cy
+
+        return fin(x, y)
+
+    return fout
+
 def point_in_line(x0, y0, x1, y1, r):
     p0 = np.array([x0, y0])
     p1 = np.array([x1, y1])

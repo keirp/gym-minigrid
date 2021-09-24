@@ -334,12 +334,18 @@ class Grid:
     # Static cache of pre-renderer tiles
     tile_cache = {}
 
-    def __init__(self, width, height):
+    def __init__(self, width, height, 
+                 agent_render_shape='tri', 
+                 agent_render_size=1, 
+                 agent_render_color='default'):
         assert width >= 3
         assert height >= 3
 
         self.width = width
         self.height = height
+        self.agent_render_shape = agent_render_shape
+        self.agent_render_size = agent_render_size
+        self.agent_render_color = agent_render_color
 
         self.grid = [None] * width * height
 
@@ -441,7 +447,10 @@ class Grid:
         agent_dir=None,
         highlight=False,
         tile_size=TILE_PIXELS,
-        subdivs=3
+        subdivs=3,
+        agent_render_shape='tri', 
+        agent_render_size=1, 
+        agent_render_color='default'
     ):
         """
         Render a tile and cache the result
@@ -465,15 +474,31 @@ class Grid:
 
         # Overlay the agent on top
         if agent_dir is not None:
-            tri_fn = point_in_triangle(
-                (0.12, 0.19),
-                (0.87, 0.50),
-                (0.12, 0.81),
-            )
+
+            if agent_render_shape == 'tri':
+                agent_fn = point_in_triangle(
+                    (0.12, 0.19),
+                    (0.87, 0.50),
+                    (0.12, 0.81),
+                )
+            elif agent_render_shape == 'circle':
+                agent_fn = point_in_circle(0.5, 0.5, 0.31)
+
+            if agent_render_size != 1:
+                agent_fn = scale_fn(agent_fn, cx=0.5, cy=0.5, scale=agent_render_size)
+
+            if agent_render_color == 'default':
+                color = (255, 0, 0)
+            elif agent_render_color == 'direction':
+                DIR_TO_COLOR = {0: (100, 150, 100),
+                                1: (50, 100, 150),
+                                2: (100, 150, 150),
+                                3: (50, 100, 100)}
+                color = DIR_TO_COLOR[agent_dir]
 
             # Rotate the agent based on its direction
-            tri_fn = rotate_fn(tri_fn, cx=0.5, cy=0.5, theta=0.5*math.pi*agent_dir)
-            fill_coords(img, tri_fn, (255, 0, 0))
+            agent_fn = rotate_fn(agent_fn, cx=0.5, cy=0.5, theta=0.5*math.pi*agent_dir)
+            fill_coords(img, agent_fn, color)
 
         # Highlight the cell if needed
         if highlight:
@@ -519,7 +544,10 @@ class Grid:
                     cell,
                     agent_dir=agent_dir if agent_here else None,
                     highlight=highlight_mask[i, j],
-                    tile_size=tile_size
+                    tile_size=tile_size,
+                    agent_render_shape=self.agent_render_shape,
+                    agent_render_size=self.agent_render_size,
+                    agent_render_color=self.agent_render_color
                 )
 
                 ymin = j * tile_size

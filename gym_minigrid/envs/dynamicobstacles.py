@@ -12,10 +12,17 @@ class DynamicObstaclesEnv(MiniGridEnv):
             size=8,
             agent_start_pos=(1, 1),
             agent_start_dir=0,
-            n_obstacles=4
+            n_obstacles=4,
+            agent_render_shape='tri', 
+            agent_render_size=1, 
+            agent_render_color='default'
     ):
         self.agent_start_pos = agent_start_pos
         self.agent_start_dir = agent_start_dir
+
+        self.agent_render_shape = agent_render_shape
+        self.agent_render_size = agent_render_size
+        self.agent_render_color = agent_render_color
 
         # Reduce obstacles if there are too many
         if n_obstacles <= size/2 + 1:
@@ -26,7 +33,7 @@ class DynamicObstaclesEnv(MiniGridEnv):
             grid_size=size,
             max_steps=4 * size * size,
             # Set this to True for maximum speed
-            see_through_walls=True,
+            see_through_walls=True
         )
         # Allow only 3 actions permitted: left, right, forward
         self.action_space = spaces.Discrete(self.actions.forward + 1)
@@ -34,7 +41,10 @@ class DynamicObstaclesEnv(MiniGridEnv):
 
     def _gen_grid(self, width, height):
         # Create an empty grid
-        self.grid = Grid(width, height)
+        self.grid = Grid(width, height, 
+                         agent_render_shape=self.agent_render_shape, 
+                         agent_render_size=self.agent_render_size, 
+                         agent_render_color=self.agent_render_color)
 
         # Generate the surrounding walls
         self.grid.wall_rect(0, 0, width, height)
@@ -104,6 +114,15 @@ class DynamicObstaclesRandomEnv6x6(DynamicObstaclesEnv):
     def __init__(self):
         super().__init__(size=6, agent_start_pos=None, n_obstacles=3)
 
+class DynamicObstaclesRandomEnvSmall6x6(DynamicObstaclesEnv):
+    def __init__(self):
+        super().__init__(size=6, agent_start_pos=None, n_obstacles=3, agent_render_size=0.5)
+
+class DynamicObstaclesRandomEnvColors6x6(DynamicObstaclesEnv):
+    def __init__(self):
+        super().__init__(size=6, agent_start_pos=None, n_obstacles=3,
+                         agent_render_color='direction', agent_render_shape='circle')
+
 class DynamicObstaclesEnv16x16(DynamicObstaclesEnv):
     def __init__(self):
         super().__init__(size=16, n_obstacles=8)
@@ -126,6 +145,16 @@ register(
 register(
     id='MiniGrid-Dynamic-Obstacles-Random-6x6-v0',
     entry_point='gym_minigrid.envs:DynamicObstaclesRandomEnv6x6'
+)
+
+register(
+    id='MiniGrid-Dynamic-Obstacles-Random-Small-6x6-v0',
+    entry_point='gym_minigrid.envs:DynamicObstaclesRandomEnvSmall6x6'
+)
+
+register(
+    id='MiniGrid-Dynamic-Obstacles-Random-Colors-6x6-v0',
+    entry_point='gym_minigrid.envs:DynamicObstaclesRandomEnvColors6x6'
 )
 
 register(
